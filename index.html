@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>RB Cloud</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" id="theme-color" content="#0f0a1a">
+<meta name="description" content="RB Cloud - Sua nuvem inteligente">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card glass">
+    <div class="login-logo">⛅</div>
+    <h1>RB Cloud</h1>
+    <p class="login-sub">Entre na sua nuvem</p>
+    <div class="inp"><label>Email</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
+    <div class="inp"><label>Senha</label><input type="password" id="login-password" placeholder="senha"></div>
+    <button class="btn primary" onclick="doLogin()">Entrar</button>
+    <p id="login-error" class="msg" style="color:var(--err);text-align:center;margin-top:10px"></p>
+  </div>
+</div>
+
+<!-- FACE UNLOCK -->
+<div id="face-screen" class="overlay hidden">
+  <div class="overlay-box glass"><div class="ov-icon">📷</div><h2>Desbloqueio Facial</h2><p id="face-status">Olhe para a câmera</p>
+    <video id="face-video" autoplay playsinline muted></video>
+    <div id="face-loading" class="hidden" style="margin:10px 0">⏳ Verificando...</div>
+    <div style="display:flex;gap:10px;margin-top:12px"><button class="btn primary" onclick="tryFaceUnlock()">🔓 Desbloquear</button><button class="btn" onclick="skipFace()">🔑 PIN</button></div>
+    <p id="face-err" class="msg" style="color:var(--err)"></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app hidden">
+  <header><div class="h-left"><span class="h-logo">⛅</span><h2>RB Cloud</h2></div>
+    <div style="display:flex;gap:8px"><button class="btn-icon" onclick="toggleTheme()" id="theme-btn">🌙</button></div>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section id="tab-home" class="tab active">
+      <div class="drop-zone" id="drop-zone"><div class="dz-icon">⛅</div><p>Solte arquivos aqui ou clique</p><input type="file" id="file-inp" multiple hidden><button class="btn" onclick="document.getElementById('file-inp').click()">Selecionar</button></div>
+      <div id="up-prog" class="hidden" style="margin:10px 0;text-align:center"><div class="bar"><div class="bar-fill" id="bar-fill"></div></div><p id="bar-txt">0%</p></div>
+      <div class="srch"><input type="text" id="srch" placeholder="Buscar arquivos..."></div>
+      <div class="stats" id="stats"></div>
+      <div class="flist" id="flist"></div>
+    </section>
+
+    <!-- PESSOAS -->
+    <section id="tab-pessoas" class="tab"><div class="pb"><button class="btn sm" onclick="scanFaces()">🔍 Detectar</button><span id="pcnt" class="pcnt"></span></div><div class="pgrid" id="pgrid"></div></section>
+
+    <!-- FOTOS -->
+    <section id="tab-fotos" class="tab"><div class="pht-grid" id="pht-grid"></div></section>
+
+    <!-- VIDEOS -->
+    <section id="tab-videos" class="tab"><div class="vid-grid" id="vid-grid"></div></section>
+
+    <!-- PERFIL -->
+    <section id="tab-perfil" class="tab">
+      <div class="pf-section">
+        <div class="pf-head"><div class="pf-av">⛅</div><div><h3>RB Cloud</h3><p class="pf-desc">Sua nuvem inteligente</p><div class="pf-stats"><span id="pf-pho">0 fotos</span><span id="pf-vid">0 vídeos</span><span id="pf-doc">0 docs</span></div></div></div>
+
+        <!-- AI -->
+        <div class="card"><h4>🤖 IA</h4>
+          <div class="inp"><label>Provedor</label><select id="ai-prov"><option value="groq">Groq (Grátis)</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option><option value="custom">Custom</option></select></div>
+          <div class="inp"><label>Endpoint</label><input type="url" id="ai-end" placeholder="https://api.groq.com/openai/v1"></div>
+          <div class="inp"><label>API Key</label><div class="pw"><input type="password" id="ai-key" placeholder="sk-..."><button class="btn-icon sm" onclick="toggleVis('ai-key')">👁️</button></div></div>
+          <div class="inp"><label>Modelo</label><input type="text" id="ai-mod" placeholder="llama-3.3-70b-versatile"></div>
+          <button class="btn primary" onclick="saveAI()">💾 Salvar</button><p id="ai-st" class="msg"></p>
+        </div>
+
+        <!-- VOZ -->
+        <div class="card"><h4>🔊 Voz</h4>
+          <div class="inp"><label>Provedor</label><select id="tts-prov"><option value="system">Sistema</option><option value="elevenlabs">ElevenLabs</option></select></div>
+          <div class="inp"><label>ElevenLabs Key</label><div class="pw"><input type="password" id="el-key"><button class="btn-icon sm" onclick="toggleVis('el-key')">👁️</button></div></div>
+          <div class="inp"><label>Voz ID</label><input type="text" id="el-voice" placeholder="21m00Tcm4TlvDq8ikWAM"></div>
+          <button class="btn primary" onclick="saveVoice()">💾 Salvar</button><p id="vo-st" class="msg"></p>
+        </div>
+
+        <!-- CHAT -->
+        <div class="card"><h4>💬 Chat</h4>
+          <div class="chat"><div class="chat-msgs" id="chat-msgs"><div class="msg ai">Olá! 🚀</div></div>
+            <div class="chat-inp"><button class="btn-icon sm" id="vb" onclick="toggleVoice()">🎤</button><textarea id="chat-inp" rows="1" placeholder="Digite..." oninput="resize(this)"></textarea><button class="btn-icon sm send" onclick="sendChat()">➤</button></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" onclick="callAI()">📞 Ligar</button><button class="btn sm" onclick="quick('🎨 Gere: ')">🎨 Imagem</button></div>
+        </div>
+
+        <!-- SEGURANÇA -->
+        <div class="card"><h4>🔒 Segurança</h4>
+          <div class="sr"><span>Face unlock</span><label class="tg"><input type="checkbox" id="face-tg" onchange="toggleFace()"><span class="sl"></span></label></div>
+          <div id="face-enroll" class="hidden" style="margin:8px 0;text-align:center"><p style="font-size:13px;color:var(--tx2);margin-bottom:6px">Cadastre seu rosto</p>
+            <video id="enroll-vid" autoplay playsinline muted style="width:100%;max-width:240px;border-radius:12px;border:1px solid var(--bd)"></video>
+            <div style="display:flex;gap:8px;margin-top:8px;justify-content:center"><button class="btn primary" style="width:auto" onclick="captureFace()">📸 Capturar</button><button class="btn" onclick="cancelEnroll()">Cancelar</button></div>
+            <p id="enroll-st" class="msg"></p></div>
+          <div class="sr"><span>PIN (exclusão)</span><div style="display:flex;gap:4px"><input type="password" id="pin-inp" maxlength="6" placeholder="4-6 dígitos" inputmode="numeric" style="width:110px;padding:6px 8px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx);font-size:13px"><button class="btn-icon sm" onclick="toggleVis('pin-inp')">👁️</button><button class="btn sm" onclick="savePin()">💾</button></div></div>
+          <p id="pin-st" class="msg"></p>
+        </div>
+
+        <!-- CONFIG -->
+        <div class="card"><h4>⚙️</h4>
+          <div class="sr"><span>Tema</span><select id="theme-sel" onchange="setTheme(this.value)"><option value="dark">Escuro</option><option value="light">Claro</option></select></div>
+          <div class="sr"><span>Armazenamento</span><span id="stg-info">0</span></div>
+          <div class="sr"><button class="btn sm" style="border-color:var(--err);color:var(--err)" onclick="clearAll()">🗑️ Limpar</button><button class="btn sm" style="border-color:var(--err);color:var(--err)" onclick="doLogout()">🚪 Sair</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bnav">
+    <button class="nav-i active" data-t="home"><span>🏠</span><span>Home</span></button>
+    <button class="nav-i" data-t="pessoas"><span>👥</span><span>Pessoas</span></button>
+    <button class="nav-i" data-t="fotos"><span>🖼️</span><span>Fotos</span></button>
+    <button class="nav-i" data-t="videos"><span>🎬</span><span>Vídeos</span></button>
+    <button class="nav-i" data-t="perfil"><span>👤</span><span>Perfil</span></button>
+  </nav>
+</div>
+
+<!-- CALL OVERLAY -->
+<div id="call-ov" class="hidden call-ov"><div style="font-size:72px">📞</div><h2>Chamada com IA</h2><p id="call-st" style="color:var(--tx2);text-align:center;max-width:280px">Fale...</p><button class="btn" style="border-color:var(--err);color:var(--err)" onclick="endCall()">🔴 Encerrar</button></div>
+
+<!-- PIN MODAL -->
+<div id="pin-modal" class="modal hidden"><div class="modal-bx glass"><h3 style="text-align:center;margin-bottom:12px">🔒 PIN</h3><p style="text-align:center;color:var(--tx2);font-size:13px;margin-bottom:12px">Digite o PIN para excluir</p><div class="inp"><input type="password" id="pin-chk" maxlength="6" placeholder="PIN" inputmode="numeric" style="text-align:center;font-size:22px;letter-spacing:6px"></div><button class="btn primary" onclick="verifyPinDel()">🔓 Verificar</button><p id="pin-del-err" class="msg" style="color:var(--err);text-align:center"></p></div></div>
+
+<!-- PREVIEW MODAL -->
+<div id="modal" class="modal hidden"><div class="modal-bx"><span class="mclose">&times;</span><div id="modal-body"></div></div></div>
+
+<!-- IMAGE MODAL -->
+<div id="img-modal" class="modal hidden"><div class="modal-bx" style="max-width:500px"><span class="mclose2">&times;</span><h3 style="margin-bottom:12px">🎨 Gerar Imagem</h3><div class="inp"><label>Descrição</label><textarea id="img-prompt" rows="3" placeholder="Descreva..."></textarea></div><button class="btn primary" onclick="genImg()">✨ Gerar</button><div id="img-load" class="hidden" style="text-align:center;padding:20px">⏳</div><div id="img-res" class="hidden" style="text-align:center;margin-top:12px"><img id="gen-img" src="" style="max-width:100%;border-radius:12px;margin-bottom:8px"><button class="btn sm" onclick="dlImg()">⬇️ Baixar</button></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>
