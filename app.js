@@ -52,7 +52,7 @@ function getPin(){return localStorage.getItem(PK)||''}
 function locked(){try{return new Set(JSON.parse(localStorage.getItem(LK)))}catch{return new Set}}
 
 async function showFace(){
-  if(!faceEnabled()){$('app').classList.remove('hidden');return}
+  if(!faceEnabled()){$('app').classList.remove('hidden');boot();return}
   $('face-screen').classList.remove('hidden');$('app').classList.add('hidden');
   $('face-status').textContent='Preparando...';
   try{
@@ -357,6 +357,7 @@ function dlImg(){const i=$('gen-img');if(!i.src)return;const a=document.createEl
 
 // BOOT
 function boot(){
+  $('app').classList.remove('hidden');
   loadCfg();
   loadF();
   const t=localStorage.getItem('rb_theme');
