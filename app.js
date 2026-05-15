@@ -258,13 +258,13 @@ function toggleVis(id){const i=$(id);i.type=i.type==='password'?'text':'password
 
 // THEME
 function toggleTheme(){
-  const a=$('app'),b=$('theme-btn'),s=$('theme-sel');
-  const d=a.classList.contains('theme-dark');
-  a.className='app theme-'+(d?'light':'dark');b.textContent=d?'☀️':'🌙';s.value=d?'light':'dark';
+  const b=$('theme-btn'),s=$('theme-sel');
+  const d=!document.body.classList.contains('theme-light');
+  document.body.classList.toggle('theme-light');b.textContent=d?'☀️':'🌙';s.value=d?'light':'dark';
   document.getElementById('theme-color').content=d?'#f0ecf8':'#0f0a1a';
   localStorage.setItem('rb_theme',d?'light':'dark');
 }
-function setTheme(v){$('app').className='app theme-'+v;$('theme-btn').textContent=v==='dark'?'🌙':'☀️';document.getElementById('theme-color').content=v==='dark'?'#0f0a1a':'#f0ecf8';localStorage.setItem('rb_theme',v)}
+function setTheme(v){document.body.className=v==='light'?'theme-light':'';$('theme-btn').textContent=v==='dark'?'🌙':'☀️';document.getElementById('theme-color').content=v==='dark'?'#0f0a1a':'#f0ecf8';localStorage.setItem('rb_theme',v)}
 
 // CHAT
 function ep(){
